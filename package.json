@@ -1,24 +1,25 @@
 {
-  "private": true,
-  "displayName": "Plugin Name",
-  "name": "homebridge-plugin-name",
+  "private": false,
+  "displayName": "Homebridge Enphase Battery",
+  "name": "homebridge-enphase-battery",
   "version": "1.0.0",
-  "description": "A short description about what your plugin does.",
+  "description": "A homebridge plugin to control Enphase Batteries",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/USERNAME/GITHUB_PROJECT_NAME.git"
+    "url": "https://github.com/tylerbenson/homebridge-enphase-battery.git"
   },
   "bugs": {
-    "url": "https://github.com/USERNAME/GITHUB_PROJECT_NAME/issues"
+    "url": "https://github.com/tylerbenson/homebridge-enphase-battery/issues"
   },
   "engines": {
     "node": ">=14.18.1",
     "homebridge": ">=1.3.5"
   },
-  "main": "dist/index.js",
+  "main": "dist/accessory.js",
   "scripts": {
     "lint": "eslint src/**.ts --max-warnings=0",
+    "lint-fix": "eslint src/**.ts --max-warnings=0 --fix",
     "watch": "npm run build && npm link && nodemon",
     "build": "rimraf ./dist && tsc",
     "prepublishOnly": "npm run lint && npm run build"
@@ -26,7 +27,9 @@
   "keywords": [
     "homebridge-plugin"
   ],
-  "dependencies": {},
+  "dependencies": {
+    "node-fetch": "^2.6.1"
+  },
   "devDependencies": {
     "@types/node": "^16.10.9",
     "@typescript-eslint/eslint-plugin": "^5.0.0",

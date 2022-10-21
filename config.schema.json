@@ -1,6 +1,6 @@
 {
-  "pluginAlias": "ExampleHomebridgePlugin",
-  "pluginType": "platform",
+  "pluginAlias": "EnphaseBatteryHomebridgePlugin",
+  "pluginType": "accessory",
   "singular": true,
   "schema": {
     "type": "object",
@@ -9,7 +9,40 @@
         "title": "Name",
         "type": "string",
         "required": true,
-        "default": "Example Dynamic Platform"
+        "default": "Enphase Battery"
+      },
+      "email": {
+        "title": "Email Address",
+        "type": "string",
+        "required": true,
+        "format": "email"
+      },
+      "password": {
+        "title": "Password",
+        "type": "string",
+        "required": true
+      },
+      "siteId": {
+        "title": "Site ID",
+        "type": "integer",
+        "required": true,
+        "minimum": 1
+      },
+      "batteryReserve": {
+        "title": "Battery Reserve",
+        "type": "integer",
+        "required": true,
+        "minimum": 0,
+        "maximum": 49,
+        "default": 30
+      },
+      "boostedBatteryReserve": {
+        "title": "Boosted Battery Reserve",
+        "type": "integer",
+        "required": true,
+        "minimum": 50,
+        "maximum": 100,
+        "default": 95
       }
     }
   }
