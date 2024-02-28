@@ -28,21 +28,15 @@
         "required": true,
         "minimum": 1
       },
-      "batteryReserve": {
-        "title": "Battery Reserve",
-        "type": "integer",
-        "required": true,
-        "minimum": 0,
-        "maximum": 49,
-        "default": 30
-      },
-      "boostedBatteryReserve": {
-        "title": "Boosted Battery Reserve",
-        "type": "integer",
-        "required": true,
-        "minimum": 50,
-        "maximum": 100,
-        "default": 95
+      "defaultBatteryProfile": {
+        "title": "Default Battery Profile (when not on full backup)",
+        "type": "string",
+        "default": "form",
+        "oneOf": [
+          { "title": "Self Consumption", "enum": ["self-consumption"] },
+          { "title": "Savings", "enum": ["cost_savings"] }
+        ],
+        "required": true
       }
     }
   }

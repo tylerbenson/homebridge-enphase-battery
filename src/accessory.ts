@@ -62,16 +62,16 @@ class EnphaseBattery implements AccessoryPlugin {
     this.siteId = config.siteId;
     this.cookie = this.authenticate();
 
-    this.batteryService = new hap.Service.Switch(this.name + ' Boost Reserve');
+    this.batteryService = new hap.Service.Switch(this.name + ' Full Backup');
     this.batteryService.getCharacteristic(hap.Characteristic.On)
       .onGet(async () => {
-        const currentReserve = await this.getCurrentReserve();
-        return currentReserve >= 50;
+        const currentBatteryProfile = await this.getCurrentBatteryProfile();
+        return currentBatteryProfile === 'backup_only';
       })
       .onSet(async (state) => {
-        const boostEnabled = state as boolean;
-        const batteryReserve = boostEnabled ? config.boostedBatteryReserve : config.batteryReserve;
-        await this.setReserve(batteryReserve);
+        const backupEnabled = state as boolean;
+        const batteryProfile = backupEnabled ? 'backup_only' : config.defaultBatteryProfile;
+        await this.setBatteryProfile(batteryProfile);
       });
 
     this.informationService = new hap.Service.AccessoryInformation()
@@ -106,38 +106,38 @@ class EnphaseBattery implements AccessoryPlugin {
       .then(cookie => cookie.trim());
   }
 
-  // Request URL: https://enlighten.enphaseenergy.com/pv/settings/3419276/battery_config
-  async getCurrentReserve() {
+  // GET https://enlighten.enphaseenergy.com/service/batteryConfig/api/v1/profile/3419276
+  async getCurrentBatteryProfile() {
     try {
       const cookie = await this.cookie;
-      const response = await fetch(`https://enlighten.enphaseenergy.com/pv/settings/${this.siteId}/battery_config`, {
+      const response = await fetch(`https://enlighten.enphaseenergy.com/service/batteryConfig/api/v1/profile/${this.siteId}`, {
         method: 'get',
         headers: {'Cookie': cookie},
       });
       const json = await response.json();
-      const batteryBackupPercentage = json.battery_config.battery_backup_percentage;
-      this.log.debug(`CurrentReserve: ${this.siteId} ${this.name} at ${batteryBackupPercentage}`);
-      return batteryBackupPercentage;
+      const batteryProfile = json.data.profile;
+      this.log.debug(`CurrentProfile: ${this.siteId} ${this.name} at ${batteryProfile}`);
+      return batteryProfile;
     } catch (error) {
-      this.log.error(`CurrentReserve error: ${error}, reconnect in 15s.`);
+      this.log.error(`CurrentProfile error: ${error}, reconnect in 15s.`);
       this.reconnect();
     }
   }
 
-  // Request URL: https://enlighten.enphaseenergy.com/pv/settings/3419276/battery_config
-  async setReserve(batteryReserve: number) {
-    this.log.info(`SetReserve ${this.siteId} ${this.name} to ${batteryReserve}`);
+  // PUT https://enlighten.enphaseenergy.com/service/batteryConfig/api/v1/profile/3419276
+  async setBatteryProfile(batteryProfile: string) {
+    this.log.info(`SetBatteryProfile ${this.siteId} ${this.name} to ${batteryProfile}`);
     try {
       const cookie = await this.cookie;
-      const response = await fetch(`https://enlighten.enphaseenergy.com/pv/settings/${this.siteId}/battery_config`, {
+      const response = await fetch(`https://enlighten.enphaseenergy.com/service/batteryConfig/api/v1/profile/${this.siteId}`, {
         method: 'put',
-        body: `battery_backup_percentage=${batteryReserve}`,
+        body: `profile=${batteryProfile}`,
         headers: {'Content-Type': 'application/x-www-form-urlencoded', 'Cookie': cookie},
       });
       const text = await response.text();
-      this.log.debug(`Reserve updated. Response: ${text}`);
+      this.log.debug(`BatteryProfile updated. Response: ${text}`);
     } catch (error) {
-      this.log.error(`SetReserve error: ${error}, reconnect in 15s.`);
+      this.log.error(`SetBatteryProfile error: ${error}, reconnect in 15s.`);
       this.reconnect();
     }
   }
