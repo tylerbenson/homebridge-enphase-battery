@@ -53,14 +53,14 @@ class EnphaseBattery implements AccessoryPlugin {
   private readonly batteryService: Service;
   private readonly informationService: Service;
 
-  private cookie;
+  private jwtToken;
 
   constructor(log: Logging, config: AccessoryConfig) {
     this.log = log;
     this.config = config;
     this.name = config.name;
     this.siteId = config.siteId;
-    this.cookie = this.authenticate();
+    this.jwtToken = this.authenticate();
 
     this.batteryService = new hap.Service.Switch(this.name + ' Full Backup');
     this.batteryService.getCharacteristic(hap.Characteristic.On)
@@ -103,16 +103,23 @@ class EnphaseBattery implements AccessoryPlugin {
       .then(cookies => cookies.split(','))
       .then(cookies => cookies.flatMap(cookie => cookie.split(';')))
       .then(cookies => cookies.find(cookie => cookie.includes('session')))
-      .then(cookie => cookie.trim());
+      .then(cookie => cookie.trim())
+      .then(cookie => fetch('https://enlighten.enphaseenergy.com/app-api/jwt_token.json', {
+        method: 'get',
+        headers: {'Cookie': cookie},
+        redirect: 'manual',
+      }))
+      .then(res => res.json())
+      .then(json => json.token);
   }
 
   // GET https://enlighten.enphaseenergy.com/service/batteryConfig/api/v1/profile/3419276
   async getCurrentBatteryProfile() {
     try {
-      const cookie = await this.cookie;
+      const jwtToken = await this.jwtToken;
       const response = await fetch(`https://enlighten.enphaseenergy.com/service/batteryConfig/api/v1/profile/${this.siteId}`, {
         method: 'get',
-        headers: {'Cookie': cookie},
+        headers: {'e-auth-token': jwtToken},
       });
       const json = await response.json();
       const batteryProfile = json.data.profile;
@@ -128,11 +135,11 @@ class EnphaseBattery implements AccessoryPlugin {
   async setBatteryProfile(batteryProfile: string) {
     this.log.info(`SetBatteryProfile ${this.siteId} ${this.name} to ${batteryProfile}`);
     try {
-      const cookie = await this.cookie;
+      const jwtToken = await this.jwtToken;
       const response = await fetch(`https://enlighten.enphaseenergy.com/service/batteryConfig/api/v1/profile/${this.siteId}`, {
         method: 'put',
         body: `profile=${batteryProfile}`,
-        headers: {'Content-Type': 'application/x-www-form-urlencoded', 'Cookie': cookie},
+        headers: {'Content-Type': 'application/x-www-form-urlencoded', 'e-auth-token': jwtToken},
       });
       const text = await response.text();
       this.log.debug(`BatteryProfile updated. Response: ${text}`);
@@ -144,7 +151,7 @@ class EnphaseBattery implements AccessoryPlugin {
 
   reconnect() {
     setTimeout(() => {
-      this.cookie = this.authenticate();
+      this.jwtToken = this.authenticate();
     }, 15000);
   }
 }
