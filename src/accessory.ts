@@ -138,8 +138,8 @@ class EnphaseBattery implements AccessoryPlugin {
       const jwtToken = await this.jwtToken;
       const response = await fetch(`https://enlighten.enphaseenergy.com/service/batteryConfig/api/v1/profile/${this.siteId}`, {
         method: 'put',
-        body: `profile=${batteryProfile}`,
-        headers: {'Content-Type': 'application/x-www-form-urlencoded', 'e-auth-token': jwtToken},
+        body: `{"profile":"${batteryProfile}"}`,
+        headers: {'Content-Type': 'application/json', 'e-auth-token': jwtToken},
       });
       const text = await response.text();
       this.log.debug(`BatteryProfile updated. Response: ${text}`);
